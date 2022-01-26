@@ -1,0 +1,20 @@
+{{define "home"}}
+
+<!DOCTYPE html>
+<html lang="en">
+    {{template "head" .PageTitle}}
+    <h1>asdfasdf</h1>
+<body>
+    {{template "header" .PageTitle}}
+    <main>
+        {{range .Blocks}}
+            <section>
+            {{template "block" .}}
+            </secion>
+        {{end}}
+    </main>
+    {{template "footer"}}
+</body>
+</html>
+
+{{end}}
