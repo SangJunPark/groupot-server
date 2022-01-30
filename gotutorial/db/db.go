@@ -19,7 +19,7 @@ const (
 var db *bolt.DB
 
 func getDBName() string {
-	return dbName + fmt.Sprint(os.Args[2][6:]) + "db"
+	return dbName + fmt.Sprint(os.Args[2][6:]) + ".db"
 }
 func DB() *bolt.DB {
 	if db == nil {

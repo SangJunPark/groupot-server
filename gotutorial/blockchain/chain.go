@@ -150,7 +150,7 @@ func Blocks(chain *blockchain) []*Block {
 	fmt.Println("blocks")
 
 	chain.m.Lock()
-	defer chain.m.Lock()
+	defer chain.m.Unlock()
 	hashCursor := chain.NewestHash
 	var blocks []*Block
 	for {
@@ -194,7 +194,11 @@ func (chain *blockchain) AddPeerBlock(block *Block) {
 	fmt.Println("add peer block")
 
 	chain.m.Lock()
+	Mempool().m.Lock()
+
 	defer chain.m.Unlock()
+	defer Mempool().m.Unlock()
+
 	fmt.Println("New Block Added")
 
 	chain.Height += 1
@@ -203,6 +207,13 @@ func (chain *blockchain) AddPeerBlock(block *Block) {
 
 	chain.persist()
 	b.persist()
+
+	for _, tx := range Mempool().Txs {
+		_, ok := Mempool().Txs[tx.Id]
+		if ok {
+			delete(Mempool().Txs, tx.Id)
+		}
+	}
 }
 
 func (chain *blockchain) Replace(newBlocks []*Block) {

@@ -117,24 +117,17 @@ func blocks(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		json.NewEncoder(rw).Encode(blockchain.Blocks(blockchain.Blockchain()))
-		break
 	case "POST":
 		var addBlock addBlock
 		utils.HandleErr(json.NewDecoder(r.Body).Decode(&addBlock))
 		fmt.Println(addBlock)
 		block := blockchain.Blockchain().AddBlock()
-		fmt.Println("1")
 
 		p2p.BroadcastNewBlock(block)
-		fmt.Println("2")
 
 		//json.NewEncoder(rw).Encode(blockchain.GetBlockchain().AllBlocks())
 		rw.WriteHeader(http.StatusCreated)
-
-		http.Redirect(rw, r, "/", 301)
-		fmt.Println("Asdfadsfasdfasdfasd")
-
-		break
+		http.Redirect(rw, r, "/", http.StatusMovedPermanently)
 	}
 }
 
@@ -175,32 +168,31 @@ func balance(rw http.ResponseWriter, r *http.Request) {
 }
 
 func mempool(rw http.ResponseWriter, r *http.Request) {
-	utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Mempool.Txs))
+	utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Mempool().Transactions()))
 }
 
+//datarace - 두개이상의 goroutine이 같은 데이터에 접근 했을때 발생
 func transactions(rw http.ResponseWriter, r *http.Request) {
 	var txPayload addTxPayload
 	utils.HandleErr(json.NewDecoder(r.Body).Decode(&txPayload))
-	err := blockchain.Mempool.AddTx(txPayload.To, txPayload.Amount)
+	tx, err := blockchain.Mempool().AddTx(txPayload.To, txPayload.Amount)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(errorResponse{err.Error()})
 		return
 	}
+	p2p.BroadcastNewTransaction(tx)
 	rw.WriteHeader(http.StatusCreated)
 }
 
 func peers(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		fmt.Println("peers get")
 		json.NewEncoder(rw).Encode(p2p.AllPeers(&p2p.Peers))
-		break
 	case "POST":
 		var payload addPeerPayload
 		json.NewDecoder(r.Body).Decode(&payload)
 		p2p.AddPeer(payload.Address, payload.Port, fmt.Sprint(port))
-		break
 	}
 }
 

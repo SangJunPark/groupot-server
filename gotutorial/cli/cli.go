@@ -44,15 +44,11 @@ func Start() {
 	port := flag.Int("port", 4000, "port")
 	mode := flag.String("mode", "rest", "resfffadsasdt")
 	flag.Parse()
-	fmt.Println("ASdf")
 	switch *mode {
 	case "html":
-		fmt.Println("ff")
 		explorer.Start(*port)
 		break
 	case "rest":
-		fmt.Println("dd")
-
 		rest.Start(*port)
 		break
 	default:

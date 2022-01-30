@@ -50,14 +50,25 @@ func AddPeer(address, port, openPort string) {
 	utils.HandleErr(err)
 	peer := initPeer(conn, address, port)
 	sendNewestBlock(peer)
-}
-
-func receive() {
-
+	BroadcaseNewPeer(peer)
 }
 
 func BroadcastNewBlock(block *blockchain.Block) {
 	for _, p := range Peers.v {
 		notifyNewBlock(p, block)
+	}
+}
+
+func BroadcastNewTransaction(tx *blockchain.Tx) {
+	for _, p := range Peers.v {
+		notifyNewTransaction(p, tx)
+	}
+}
+
+func BroadcaseNewPeer(newP *peer) {
+	for _, p := range Peers.v {
+		if newP.id != p.id {
+			notifyNewPeer(p, newP.id)
+		}
 	}
 }

@@ -14,6 +14,8 @@ const (
 	MessageAllBlocksRequest
 	MessageAllBlockResponse
 	MessageNewBlockCreated
+	MessageNewTransactionCreated
+	MessageNewPeerConnected
 )
 
 type Message struct {
@@ -47,6 +49,16 @@ func notifyNewBlock(p *peer, block *blockchain.Block) {
 	p.inbox <- m
 }
 
+func notifyNewTransaction(p *peer, tx *blockchain.Tx) {
+	m := makeMessage(MessageNewTransactionCreated, tx)
+	p.inbox <- m
+}
+
+func notifyNewPeer(p *peer, address string) {
+	m := makeMessage(MessageNewPeerConnected, address)
+	p.inbox <- m
+}
+
 func (m *Message) addPayload(p interface{}) {
 	b, err := json.Marshal(p)
 	utils.HandleErr(err)
@@ -71,28 +83,32 @@ func handleMessage(m *Message, p *peer) {
 		fmt.Println(payload.Hash)
 		b, err := blockchain.FindBlock(blockchain.Blockchain().NewestHash)
 		utils.HandleErr(err)
-		if payload.Height >= b.Height {
+		if payload.Height <= b.Height {
 			sendAllBlocks(p)
 		} else {
 			sendNewestBlock(p)
 		}
-		break
 	case MessageAllBlocksRequest:
 		sendAllBlocks(p)
-		break
 	case MessageAllBlockResponse:
 		var payload []*blockchain.Block
 		json.Unmarshal(m.Payload, &payload)
 		blockchain.Blockchain().Replace(payload)
 		fmt.Println("received allblock response")
-		break
 	case MessageNewBlockCreated:
 		var payload *blockchain.Block
 		json.Unmarshal(m.Payload, &payload)
 		blockchain.Blockchain().AddPeerBlock(payload)
-		break
+	case MessageNewTransactionCreated:
+		var payload *blockchain.Tx
+		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
+		blockchain.Mempool().AddPeerTx(payload)
+		fmt.Println(payload)
+	case MessageNewPeerConnected:
+		var payload string
+		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
+		fmt.Println("MessageNewPeerConnected " + payload)
 	default:
 		fmt.Println("Undefined message kind")
-		break
 	}
 }
