@@ -15,6 +15,7 @@ type peer struct {
 	id     string
 	conn   *websocket.Conn
 	inbox  chan []byte
+	port   string
 	closed bool
 }
 
@@ -36,14 +37,16 @@ func AllPeers(p *peers) []string {
 }
 
 func initPeer(conn *websocket.Conn, address, port string) *peer {
-	// Peers.m.Lock()
-	// defer Peers.m.Unlock()
+	Peers.m.Lock()
+	defer Peers.m.Unlock()
+
 	key := fmt.Sprintf("%s:%s", address, port)
 
 	p := &peer{
 		key,
 		conn,
 		make(chan []byte),
+		port,
 		false,
 	}
 	Peers.v[key] = p

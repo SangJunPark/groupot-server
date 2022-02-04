@@ -1,7 +1,6 @@
 package blockchain
 
 import (
-	"fmt"
 	"gotutorial/db"
 	"gotutorial/utils"
 	"strings"
@@ -40,10 +39,10 @@ func FindBlock(hash string) (*Block, error) {
 func (b *Block) mine() {
 	target := strings.Repeat("0", b.Difficulty)
 	for {
-		blockAsString := fmt.Sprint(b)
+		//blockAsString := fmt.Sprint(b)
 		b.Timestamp = int(time.Now().Unix())
 		hash := utils.Hash(b)
-		fmt.Printf("%s %s %d %d\n\n\n", blockAsString, hash, b.Difficulty, b.Nonce)
+		//fmt.Printf("%s %s %d %d\n\n\n", blockAsString, hash, b.Difficulty, b.Nonce)
 		if strings.HasPrefix(hash, target) {
 			b.Hash = hash
 			break

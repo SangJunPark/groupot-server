@@ -13,8 +13,11 @@ var upgrader websocket.Upgrader
 var conns []*websocket.Conn
 
 func Upgrade(rw http.ResponseWriter, r *http.Request) {
+
 	ip := utils.Splitter(r.RemoteAddr, ":", 0)
 	openPort := r.URL.Query().Get("openPort")
+
+	fmt.Printf("Upgrade address ip %s openport %s\n", ip, openPort)
 
 	upgrader.CheckOrigin = func(r *http.Request) bool {
 		return ip != "" || openPort != ""
@@ -40,17 +43,18 @@ func Upgrade(rw http.ResponseWriter, r *http.Request) {
 	// }
 }
 
-func Connect2Peer(address, port string) {
-
-}
-
-func AddPeer(address, port, openPort string) {
-	fmt.Println(address, port)
+func AddPeer(address, port, openPort string, broadcast bool) {
 	conn, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("ws://%s:%s/ws?openPort=%s", address, port, openPort), nil)
 	utils.HandleErr(err)
 	peer := initPeer(conn, address, port)
+
+	fmt.Printf("AddPeer %s   %s   %s", address, port, openPort)
+
+	if broadcast {
+		BroadcastNewPeer(peer)
+		return
+	}
 	sendNewestBlock(peer)
-	BroadcaseNewPeer(peer)
 }
 
 func BroadcastNewBlock(block *blockchain.Block) {
@@ -65,10 +69,11 @@ func BroadcastNewTransaction(tx *blockchain.Tx) {
 	}
 }
 
-func BroadcaseNewPeer(newP *peer) {
+func BroadcastNewPeer(newP *peer) {
 	for _, p := range Peers.v {
 		if newP.id != p.id {
-			notifyNewPeer(p, newP.id)
+			payload := fmt.Sprintf("%s:%s", newP.id, p.port)
+			notifyNewPeer(p, payload)
 		}
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gotutorial/blockchain"
 	"gotutorial/utils"
+	"strings"
 )
 
 type MessageKind int
@@ -59,12 +60,6 @@ func notifyNewPeer(p *peer, address string) {
 	p.inbox <- m
 }
 
-func (m *Message) addPayload(p interface{}) {
-	b, err := json.Marshal(p)
-	utils.HandleErr(err)
-	m.Payload = b
-}
-
 func makeMessage(kind MessageKind, payload interface{}) []byte {
 	m := Message{
 		Kind:    kind,
@@ -108,6 +103,8 @@ func handleMessage(m *Message, p *peer) {
 		var payload string
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
 		fmt.Println("MessageNewPeerConnected " + payload)
+		parts := strings.Split(payload, ":")
+		AddPeer(parts[0], parts[1], parts[2], false)
 	default:
 		fmt.Println("Undefined message kind")
 	}
