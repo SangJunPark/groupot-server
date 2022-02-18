@@ -178,6 +178,14 @@ func Blocks(chain *blockchain) []*Block {
 // 	return ""
 // }
 
+func (chain *blockchain) Burn(b *Block) {
+	db.BurnBlock(b.Hash)
+}
+
+func (chain *blockchain) Burn2(b *Block) {
+	db.SaveBlock(b.Hash, []byte(b.Data))
+}
+
 func (chain *blockchain) AddBlock() *Block {
 	fmt.Println("add block")
 	chain.m.Lock()

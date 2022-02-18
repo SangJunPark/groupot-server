@@ -1,3 +1,4 @@
+// Package utils contains util
 package utils
 
 import (
@@ -29,6 +30,7 @@ func ToBytes(i interface{}) []byte {
 	return buf.Bytes()
 }
 
+//whatever
 func FromBytes(i interface{}, data []byte) {
 	HandleErr(gob.NewDecoder(bytes.NewReader(data)).Decode(i))
 }

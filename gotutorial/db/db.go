@@ -21,6 +21,7 @@ var db *bolt.DB
 func getDBName() string {
 	return dbName + fmt.Sprint(os.Args[2][6:]) + ".db"
 }
+
 func DB() *bolt.DB {
 	if db == nil {
 		dbPointer, err := bolt.Open(getDBName(), 0600, nil)
@@ -91,6 +92,14 @@ func EmptyBlocks() {
 		utils.HandleErr(t.DeleteBucket([]byte(blockBucket)))
 		_, err := t.CreateBucket([]byte(blockBucket))
 		utils.HandleErr(err)
+		return nil
+	})
+}
+
+func BurnBlock(hash string) {
+	DB().Update(func(t *bolt.Tx) error {
+		b := t.Bucket([]byte(blockBucket))
+		utils.HandleErr(b.Delete([]byte(hash)))
 		return nil
 	})
 }
